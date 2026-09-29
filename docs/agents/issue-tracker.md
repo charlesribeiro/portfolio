@@ -33,6 +33,14 @@ Create a GitHub issue.
 
 Run `gh issue view <number> --comments`.
 
+## Autonomous agent exceptions
+
+When the actor is an autonomous agent using the portfolio GitHub App (see `docs/spec/19-agent-development.md` §5 and `docs/spec/21-agent-github-app.md`), these rules **override** every conflicting operation in this file (including Conventions above and Wayfinding below):
+
+- **Claim**: GitHub Apps can't be assignees. Instead of `--add-assignee @me`, follow the comment-based issue-claim protocol in 19 §5 step 2 (marker comments are the source of truth, and only those created by the portfolio App and never edited by another account are honoured; only a release for that run, or a supervisor handoff from it, ends an issue claim; restarts are handed off only by the supervisor; `agent:claimed` is a shared hint that only a releasing winner or the supervisor removes, and only when no other active issue claim remains). Frontier queries exclude issues labelled `agent:claimed` and issues with an open `Closes #n` PR, and the comment protocol still decides the winner.
+- **Close / Resolve**: agents never run `gh issue close`. Issues close only when Charles merges a PR containing `Closes #n`. An agent posts its answer or outcome as a comment and leaves the issue open.
+- **Labels**: agents never remove `needs-human:*` labels.
+
 ## Wayfinding operations
 
 Used by `/wayfinder`. The **map** is a single issue with **child** issues as tickets.
