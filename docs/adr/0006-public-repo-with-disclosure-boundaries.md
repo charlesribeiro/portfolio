@@ -12,5 +12,5 @@ For **United Airlines**: Charles worked as a **contractor**, not a United employ
 ## Consequences
 
 - Secret scanning (gitleaks plus GitHub push protection) is a required gate.
-- Confidential terms are checked against a **hashed** denylist, so the list itself does not leak.
+- Confidential terms are checked against a **hashed** denylist, so the list isn't readable in plain text. Its salt is public (gate jobs have no secrets), so the hashes hide terms but don't make them secret: anyone can test a guessed name. The scheme (scrypt) and this residual risk are recorded in CONTENT-03 (amended 2026-09-30, decision D5).
 - Content changes touching clients or personal claims require Charles's approval (ADR-0011).

@@ -48,6 +48,7 @@ Order reflects the positioning hierarchy and the recruiter path:
 
 **Work · Experience · AI · Writing · Timeline · Kanji · About · Hire**
 
+- **Only sections with at least one published page appear** (D3). The nav is generated from the route registry in this order, so it grows with each release (release slices in 90) and never links to a missing page.
 - "Hire" is visually distinct: the old-web "enter" button treatment (see 12).
 - On mobile, primary nav collapses into a `<details>`-based menu that works without JS.
 - A persistent "CV" and "Contact" pair lives in the masthead on every page.
@@ -64,7 +65,7 @@ Order reflects the positioning hierarchy and the recruiter path:
 | IA-01 | HTML canonical URLs have **no trailing slash** and no `.html` extension: `/work/pilot-bidding`. |
 | IA-02 | The Markdown alternate is the canonical path plus `.md`: `/work/pilot-bidding.md`. Home: `/index.md`. |
 | IA-03 | Latin slugs are lowercase kebab-case ASCII. |
-| IA-04 | Kanji reference slugs MAY be Japanese (`/kanji/words/魑魅魍魎`). Canonicals, sitemap and `llms.txt` emit them percent-encoded. A CI deploy smoke test MUST fetch at least one Japanese-path URL from the preview deployment. |
+| IA-04 | Kanji reference slugs MAY be Japanese (`/kanji/words/魑魅魍魎`). Canonicals, sitemap and `llms.txt` emit them percent-encoded. A CI deploy smoke test MUST fetch at least one Japanese-path URL from the preview deployment. Until a kanji reference page exists, it fetches `/__smoke/日本語`, a route built **only** in preview mode and never in production, the sitemap or `published-urls.txt`. It is removed once a real Japanese-path page exists (D4). |
 | IA-05 | Homographs are disambiguated as `{word}-{reading-in-hiragana}`, e.g. `/kanji/words/上手-うわて`. |
 | IA-06 | URLs are permanent. Renames require an entry in the redirects file. CI fails if a previously published URL (recorded in the committed `published-urls.txt`, see 10 §5) disappears without a redirect. |
 | IA-07 | Tracking parameters (`ref`, `utm_*`) never change content and are stripped from canonicals. |

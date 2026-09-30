@@ -16,5 +16,5 @@ The bubbles-server workers authenticate as a **dedicated GitHub App** installed 
 
 - Token permissions do not stop a merge on their own, because merging needs `contents: write`, which pushing also needs. **Rulesets are the enforcement:** `main` requires a code-owner (Charles) approval, stale approvals are dismissed on push, and only the repository admin role (Charles) can bypass. That bypass is needed because a single-maintainer repo can't self-approve. The App is never admin and never on a bypass list.
 - Without the `workflows` permission, the App cannot push changes to `.github/workflows/`. Those changes are human-only by construction (see ADR-0017 for how CI work is split).
-- Apps can't be issue assignees and all workers share one identity, so issue claims use App-authored marker comments (claim, release, handoff) carrying a worker slot and run as the source of truth, with a label only as a hint (spec 19 §5).
+- The portfolio App is not configured as an assignable agent app, so it can't be an issue assignee. GitHub supports assigning only specially configured agent apps. And all workers share one identity. So issue claims use App-authored marker comments (claim, release, handoff) carrying a worker slot and run as the source of truth, with a label only as a hint (spec 19 §5).
 - No personal GitHub credential of Charles's may exist on bubbles-server.
