@@ -44,7 +44,7 @@ Legend: ✅ **Resolved** (decided by Charles, 2026-09-28; the second batch was r
 | D10 | Production deploy switch | ✅ `deploy-production.yml` runs only when `PRODUCTION_DEPLOY_ENABLED == 'true'`, which Charles sets at the first production release | 10 §3 |
 | D11 | Fixture-backed gate builds | ✅ Explicit non-production fixture content. `dist/` and browser gates build `GATE_CONTENT_SET` (fixtures → real, switched by Charles). G6 always builds real content. Production always builds real content and refuses fixture output | 06 §3, 10 §2, 10 §3, `CONTEXT.md` (Fixture content) |
 
-**Release slices (D3).** Every production release needs verified real content. Fixture content is never published (D11).
+**Release slices (D3).** Every production release needs verified real content. Fixture content may reach no-index preview deployments but is never deployed to production (D11).
 
 | Release | Adds |
 |---|---|

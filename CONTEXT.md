@@ -108,7 +108,7 @@ Stand-in content or artwork that is explicitly marked, visible as such in previe
 _Avoid_: dummy, mock, sample (when it could be mistaken for real content)
 
 **Fixture content**:
-A separate, clearly fictional content set (`content/__fixtures__/`) used by tests and by gate builds, so neither waits for real facts. It is selected as a whole at build time, never mixed into real content, and never published. Placeholders, by contrast, live inside the real content.
+A separate, clearly fictional content set (`content/__fixtures__/`) used by local development, tests and gate builds (including their no-index preview deployments), so none of them waits for real facts. It is selected as a whole at build time, never mixed into real content, and never deployed to production. Placeholders, by contrast, live inside the real content.
 _Avoid_: sample data, demo content, placeholder (a different concept)
 
 ### Kanji area

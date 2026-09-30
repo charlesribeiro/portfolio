@@ -45,7 +45,8 @@ type QuotedText = {
   lang: Lang;
   rights: {
     status: 'third-party-quotation' | 'third-party-derived';  // 'derived' = Charles's translation of a quotation
-    holder: string;                // publisher / rights holder
+    holder: string;                // holder of the quoted text as attributed (often the publisher). Field-level only: it is
+                                   //   not the press work's copyright holder (MediaMention.copyrightHolder, 17 §2)
     source: string;                // canonical URL of the quoted work
   };
 };

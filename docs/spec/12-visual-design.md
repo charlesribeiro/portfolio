@@ -68,8 +68,8 @@ Japanese typesetting: `line-break: strict`, `word-break: auto-phrase` (progressi
 - **What agents may make (D9):**
   - Agents may write **CSS chrome** (gradients, bevels, borders, shadows and textures expressed in CSS) and **geometric SVG** (dividers, `border-image` frames, simple rules and shapes) that implement an approved style tile.
   - Agents may build style tiles and mock-ups as **proposals** for Charles's approval (§9).
-  - **Pictorial artwork** is made, commissioned or provided by Charles, never by an agent. That covers the masthead illustration, icons, sprites, 88×31 button graphics beyond CSS text buttons, and the favicon. Until it exists, agents use `assets/placeholder/`, which can't reach production (CONTENT-12).
-  - Until Charles provides a favicon, pages declare `<link rel="icon" href="data:,">`, so browsers make no favicon request.
+  - **Pictorial artwork** is made, commissioned or provided by Charles, never by an agent. That covers the masthead illustration, icons, sprites, 88×31 button graphics beyond CSS text buttons, and the favicon. Until it exists, agents use `assets/placeholder/` for pictorial artwork, which can't reach production (CONTENT-12). **The favicon is the exception** and has no placeholder:
+  - Until Charles provides and approves a favicon, pages declare `<link rel="icon" href="data:,">` in every build mode, so browsers make no favicon request.
 - **Placeholders:** every non-final asset has `Media.status: 'placeholder'` (or lives under `assets/placeholder/`). In preview it renders with a visible placeholder treatment, and a **production build fails** if any is referenced (CONTENT-12). Placeholders can never quietly become production artwork.
 - Every asset records its `origin` and `license` (03 §1). Original artwork is **All Rights Reserved** by default and lives under `assets/` (ADR-0014, 20).
 - Photo of Charles: optional (OD-19).
