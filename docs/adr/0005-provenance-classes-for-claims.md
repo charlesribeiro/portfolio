@@ -15,4 +15,4 @@ Recruiting and research agents need to know *why* a fact about Charles should be
 ## Consequences
 
 - `verified` can only be set in a PR approved by Charles. Agents may propose it, never finalize it.
-- Numeric outcomes without evidence must be worded qualitatively or labelled self-reported.
+- A numeric outcome is published only with evidence, or when its text is listed in the entity's `client.approvedFacts` (Approved Facts). Otherwise it is worded qualitatively. A `self-reported` label alone does not permit a number (amended 2026-09-30, decision D2; the rule is CONTENT-05).

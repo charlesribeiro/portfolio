@@ -107,6 +107,10 @@ _Avoid_: press item, article (ambiguous with Charles's own articles)
 Stand-in content or artwork that is explicitly marked, visible as such in previews, and excluded from production.
 _Avoid_: dummy, mock, sample (when it could be mistaken for real content)
 
+**Fixture content**:
+A separate, clearly fictional content set (`content/__fixtures__/`) used by tests and by gate builds, so neither waits for real facts. It is selected as a whole at build time, never mixed into real content, and never published. Placeholders, by contrast, live inside the real content.
+_Avoid_: sample data, demo content, placeholder (a different concept)
+
 ### Kanji area
 
 **Achievement**:
@@ -177,7 +181,7 @@ _Avoid_: service account, machine user
 The Owner's human GitHub identity, the only one that can approve and merge into `main`.
 
 **Gate**:
-An automated check registered in the gate manifest as planned or active. Active pre-deploy and post-deploy gates must pass before a pull request can be merged (except the bootstrap PR and approved gate removals, which the Owner merges with the admin bypass), and scheduled gates report through issues.
+An automated check registered in the gate manifest as planned or active. Active pre-deploy and post-deploy gates must pass before a pull request can be merged (except PRs merged before the required checks exist, namely the pre-bootstrap and bootstrap PRs, and approved gate removals, all of which the Owner merges with the admin bypass), and scheduled gates report through issues.
 
 **Gate weakening**:
 Any change that makes an active Gate less strict, or that can't be objectively shown not to: exactly the signals W1–W6 in `docs/spec/06-testing-and-ci.md` §1.2. It always needs the Owner's approval.
@@ -191,7 +195,7 @@ _Avoid_: island (an island enhances an Information page)
 
 **Issue claim**:
 A worker run's declared ownership of an issue, started by a claim or handoff marker comment (posted by the portfolio App) carrying its worker slot and a supervisor-minted run ID. The App-authored markers are authoritative, and the `agent:claimed` label is only a hint. It lasts until a release for that run, or a supervisor handoff to a successor run that inherits its rank, and it is kept while the run's PR awaits review. Always write "issue claim", never a bare "claim", which means a Claim about Charles.
-_Avoid_: assignment (Agents can't be assignees)
+_Avoid_: assignment (the Agent App is not configured as an assignable agent app, so Agents can't be assignees)
 
 **Human-approval category**:
 One of the reasons a change is flagged for the Owner's review: architecture decisions, significant dependencies, personal Claims, client-sensitive information, CI/security infrastructure, Gate weakening, Owner policy (crawler and licence files), or visual baselines. Every merge needs the Owner regardless.

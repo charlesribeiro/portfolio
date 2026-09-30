@@ -50,7 +50,7 @@ Mapping:
 | Book / chapter / article | `Book` / `Chapter` / `ScholarlyArticle` / `Article` with `author`/`contributor`, `publisher`, `isbn`, `inLanguage`, `url` |
 | Alura course | `Course` with `provider` Alura and `instructor` `#person`, `hasCourseInstance` if applicable |
 | Talk | `Event` with `performer` |
-| Timeline page | `CollectionPage` + `ItemList` of entries. Press entries → `NewsArticle` (external `url`, `publisher`, `copyrightHolder` = publisher, no `sdLicense`, `datePublished`, `headline` (a quotation, LIC-10), `about` `#person`) |
+| Timeline page | `CollectionPage` + `ItemList` of entries. Press entries → a **press node** whose type follows `MediaMention.format` (D6): `article`/`print` → `NewsArticle`, `video` → `VideoObject`, `radio` → `RadioEpisode`, `podcast` → `PodcastEpisode`. Each press node carries external `url`, `publisher`, `datePublished`, `headline` (a quotation, LIC-10) and `about` `#person`, and never `sdLicense`. It carries `copyrightHolder` only when `copyrightHolderConfirmed` is set (17 §2) |
 | Kanken (only when an Achievement exists with owner confirmation, ADR-0009) | `EducationalOccupationalCredential` (`credentialCategory` "certificate", `recognizedBy` Organization 日本漢字能力検定協会, `educationalLevel` "準1級", `dateCreated`) |
 | Kanji reference entry | `DefinedTerm` in a `DefinedTermSet`, with `inLanguage: "ja"`, `alternateName` for readings |
 | Kanji topic guide | `LearningResource` (`educationalLevel`, `teaches`, `inLanguage`) |
@@ -65,13 +65,13 @@ Schema.org has no single provenance vocabulary, so the mapping is pragmatic. It 
 | Provenance | JSON-LD expression |
 |---|---|
 | `verified` | The fact's node carries `subjectOf` / `citation` → the evidence `CreativeWork` (`url`, `publisher`, `datePublished`). Credentials use `EducationalOccupationalCredential.recognizedBy` plus `url` of the evidence |
-| `external-source` | The source is a `NewsArticle`/`WebPage` node with `publisher` and `url`. The Person links to it through `subjectOf`, and the site does not restate the source's claims as its own |
+| `external-source` | The source is a press node (typed by `format`, §3) or a `WebPage` node, with `publisher` and `url`. The Person links to it through `subjectOf`, and the site does not restate the source's claims as its own |
 | `derived` | Emitted as plain values only. The derivation rule is documented in `/data/schema/` and exposed in `/data/*.json` |
 | `self-reported` | Emitted as plain values with no citation. The WebPage `author`/`publisher` is `#person`, which makes it clear that Charles is the source |
 
 The **complete** four-class provenance is machine-readable in `/data/*.json` (`provenance` objects) and in `.md` front-matter. JSON-LD carries the evidence *relationships*. SEO-21: every JSON-LD citation URL equals an evidence URL in content (contract test).
 
-JSON-LD rules: `sdLicense` appears only on CreativeWork nodes (CC0 for professional ones, CC BY-NC for editorial and kanji ones). `NewsArticle` nodes omit it and carry `copyrightHolder` (LIC-10). Builders are typed with `schema-dts` and snapshot-tested. They emit only facts that appear visibly on the page (Google's guideline, and it prevents cloaking). `@graph` is validated in CI by parsing plus structural assertions per page type (G9). A manual Rich Results Test is run at release.
+JSON-LD rules: `sdLicense` appears only on CreativeWork nodes (CC0 for professional ones, CC BY-NC for editorial and kanji ones). Press nodes (any type chosen by `format`, 17 §5) omit it, and carry `copyrightHolder` only when it is confirmed (LIC-10, D6). Builders are typed with `schema-dts` and snapshot-tested. They emit only facts that appear visibly on the page (Google's guideline, and it prevents cloaking). `@graph` is validated in CI by parsing plus structural assertions per page type (G9). A manual Rich Results Test is run at release.
 
 ## 4. Site-level machine files
 

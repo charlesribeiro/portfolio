@@ -22,25 +22,31 @@ Alternatives: Netlify (equivalent features), or GitHub Pages (no custom headers,
 | Preview | Every PR | `https://<hash>.<project>.pages.dev` | `X-Robots-Tag: noindex` on all responses. `robots.txt` disallows all |
 | Production | Merge to `main` (merge is human-only, ADR-0011) | `SITE_URL` | Indexable |
 
-There are two **build modes** from the same code: `BUILD_MODE=production` (placeholders excluded, robots from `config/crawlers.yaml`) and `BUILD_MODE=preview` (placeholders visible, `robots.txt` disallow-all, `X-Robots-Tag: noindex`). Every PR builds **both**. All `dist/` gates (G6–G16, G22, SEO-22) run on the production-mode build, and only the preview-mode build is deployed to the preview URL.
+There are two **build modes** from the same code: `BUILD_MODE=production` (placeholders excluded, robots from `config/crawlers.yaml`) and `BUILD_MODE=preview` (placeholders visible, `robots.txt` disallow-all, `X-Robots-Tag: noindex`). Every PR builds **both**. All `dist/` gates (G6–G16, G22, SEO-22) run on the production-mode build, and only the preview-mode build is deployed to the preview URL. Which content those builds contain is set by `CONTENT_SET` (below, D11).
+
+A second, independent build input selects the content (D11): `CONTENT_SET=real` (the default) or `CONTENT_SET=fixtures` (the non-production set in `content/__fixtures__/`, 06 §3). A fixtures build writes a `FIXTURE-BUILD` marker at the output root, and it is never indexable in either mode: `X-Robots-Tag: noindex` and a disallow-all `robots.txt`. PR gate builds use the `GATE_CONTENT_SET` repository variable, and production deploys always use `real`. Preview-only smoke routes (D4, IA-04) are built only in preview mode.
 
 ## 3. Pipeline (GitHub Actions)
 
 ```
 pull_request:  plan (reads ci/gates.json)
-               → build (no secrets): production-mode + preview-mode dist/ → artifacts
+               → build (no secrets): production-mode + preview-mode dist/ from CONTENT_SET=$GATE_CONTENT_SET → artifacts;
+                 while that is `fixtures`, also a production-mode build of the real content for G6 (D11)
                → gate (<id>) matrix, parallel, no secrets: active pre-deploy gates against the production-mode artifact
                → deploy-preview (preview env secret, runs NO repo code): publishes the preview-mode artifact
                → gate (<id>) matrix: active post-deploy gates (G17) against the preview URL
                → verify (aggregate, required): fails unless every active pre-/post-deploy gate succeeded; comments the gate report
 pull_request_target (base-branch code only): labeller, gate-integrity (required)
-push main:     build → deploy production (production env, runs no repo code) → post-deploy gates against production
+push main:     only if vars.PRODUCTION_DEPLOY_ENABLED == 'true' (D10):
+               build (CONTENT_SET=real; fails if FIXTURE-BUILD is present, D11) → deploy production (production env,
+               runs no repo code) → post-deploy gates against production
                (robots.txt compared with that build's dist/robots.txt, SEO-24)
 schedule:      active `scheduled` gates (G0h secret-history scan, G18 links, G19 agent eval, G20 prod Lighthouse) → open/update ISSUES only
 ```
 
 - Required status checks: **`verify`** and **`gate-integrity`** only. Their names are stable, and the gate set behind them comes from the manifest (ADR-0017).
 - **Bootstrap:** the first workflows and gate manifest land before the rulesets require `verify`/`gate-integrity` (06 §1.3).
+- **Production deploy switch (D10):** `deploy-production.yml` runs only when the repository variable `PRODUCTION_DEPLOY_ENABLED` is `'true'`. It stays `false` from the bootstrap merge until Charles sets it at the first production release, so nothing is published to the production origin before then.
 - **Fork PRs** build without deploying, so they cannot pass `verify` (post-deploy gates need a preview). External PRs are not a request surface.
 - **The only secret-bearing gate** is the scheduled G19 eval. It uses an LLM key from the `agent-eval` environment (restricted to `main`) and runs only on `schedule`/`workflow_dispatch`, never on `pull_request` (ADR-0017).
 - Scheduled jobs never commit and never open PRs. PRs created with the default `GITHUB_TOKEN` don't trigger workflows, and this limitation is accepted. **No privileged App token is placed in scheduled workflows** to work around it.

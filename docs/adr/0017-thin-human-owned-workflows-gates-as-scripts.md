@@ -40,9 +40,10 @@ Agents must never make CI pass by weakening, disabling or removing a gate. A fai
 
 ## Bootstrap
 
-1. **Governance** (human): create the App, CODEOWNERS, the `agent-branch-namespace` and `protect-tags` rulesets, and `protect-main` **without required status checks** (PR + code-owner review only).
-2. **Bootstrap PR**, the single promotion point for the initial workflows. It contains the scaffold, workflows drafted in `ci/proposed/` and promoted by Charles, `ci/gates.json` with every gate `planned`, the `pnpm gate` / `gates:plan` runners, `scripts/ci/**` and the threshold and allow-list files. Charles merges it with the admin bypass. With zero active gates, the matrix job is skipped by an `if:` guard and `verify` passes vacuously.
-3. Charles then adds `verify` and `gate-integrity` as required checks on `protect-main`.
+1. **Governance** (human): create the App, CODEOWNERS, the `agent-branch-namespace` and `protect-tags` rulesets, and `protect-main` **without required status checks** (PR + code-owner review only). The rulesets and CODEOWNERS must exist before step 2. The App is needed only before agents act through it, so attended work under Charles's identity (D8) may start before the App exists.
+2. **Pre-bootstrap PRs** (amended 2026-09-30, decision D1): the scaffold, tooling, `ci/gates.json` with every gate `planned`, the `pnpm gate` / `gates:plan` runners, `scripts/ci/**` and the threshold and allow-list files may land in separate, small PRs **before** the bootstrap PR. None of them adds workflows. Charles reviews and merges each one while `protect-main` still has no required status checks. They are worked in attended sessions, not by unattended agents, because no gate judges them yet (decision D8).
+3. **Bootstrap PR**, the single promotion point for the initial workflows. It contains the workflows drafted in `ci/proposed/` and Charles's commit promoting them to `.github/workflows/`, plus anything from step 2 not merged yet. Charles merges it with the admin bypass. With zero active gates, the matrix job is skipped by an `if:` guard and `verify` passes vacuously.
+4. Charles then adds `verify` and `gate-integrity` as required checks on `protect-main`.
 
 ## Considered Options
 

@@ -209,9 +209,9 @@ These are specified in [17-timeline.md](17-timeline.md).
 |---|---|---|
 | CONTENT-01 | No dangling references. | Schema/build |
 | CONTENT-02 | `disclosure: private` content never appears in `dist/`. | Post-build scan |
-| CONTENT-03 | Confidential terms denylist (client-internal names, codenames, colleagues' names) never appears in `dist/`. The denylist is stored as salted hashes of normalized tokens in the repo, so the list itself does not leak. | Post-build scan |
+| CONTENT-03 | Confidential terms denylist (client-internal names, codenames, colleagues' names) never appears in `dist/`. The denylist is stored in the repo as **scrypt** hashes of normalized tokens, with a committed public salt (gate jobs have no secrets, ADR-0017) (D5). This hides the terms but doesn't make them secret: anyone with a list of candidate names can test guesses against it. The residual risk is documented in `docs/runbook.md`. | Post-build scan |
 | CONTENT-04 | Every `Claim` has a `provenance`. `verified` requires ≥ 1 evidence item. `derived` requires `from` + `rule`. | Schema |
-| CONTENT-05 | Numeric outcomes (%, ×, ms, $) require evidence or an approved-by-client note. Otherwise, use qualitative wording. | Lint on `Claim.text` |
+| CONTENT-05 | Numeric outcomes (%, ×, ms, $) require evidence, or their text must be listed in the entity's `client.approvedFacts` (the approved-by-client note). Otherwise, use qualitative wording. A `self-reported` provenance label alone never permits a number (D2, ADR-0005). | Lint on `Claim.text` |
 | CONTENT-06 | Every `Media` has `alt` (or `decorative`) and a `license`. | Schema |
 | CONTENT-07 | `summary` ≤ 280 characters. Titles are unique within a collection. | Schema |
 | CONTENT-08 | Japanese strings inside English content use the ruby/lang markup helpers (18 §8). A raw run of CJK characters outside `lang="ja"` in the output fails the check. | Post-build HTML scan |

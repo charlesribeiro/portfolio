@@ -28,6 +28,31 @@ Legend: ✅ **Resolved** (decided by Charles, 2026-09-28; the second batch was r
 | — | JavaScript accounting | ✅ Four buckets (required / initial / on-demand / third-party). Information pages never require JS, while `/lab/**` demos may. Idle prefetch allowed within budgets. Workers, service workers, inline JS and inline JSON classified. All numbers only in PERF-06 §2.1 | ADR-0016, 08 §2.1 |
 | — | CI ownership | ✅ Thin, human-owned workflows running a **dynamic matrix** from `ci/gates.json` (`id`, `command`, `phase`, `status`, plus `definitionPaths` when active). Required checks: `verify` (aggregate) and `gate-integrity`. Weakening, or editing an active gate's non-threshold definition files, needs Charles's `gate-change-approved` label. Activating new gates, adding tests, tightening threshold files and removing allow-list entries don't. Scheduled jobs open issues only, with no privileged token in schedules | ADR-0017, 06 §1.1–1.2, 19 §3.1 |
 
+## Implementation decisions D1–D11 ✅ (decided by Charles, 2026-09-30, during ticket decomposition)
+
+| ID | Decision | Outcome | Record |
+|---|---|---|---|
+| D1 | Bootstrap split | ✅ The scaffold, tooling, gate manifest, runners, `scripts/ci/**` and threshold files may land in **pre-bootstrap PRs** that Charles reviews and merges. The bootstrap PR remains the single workflow promotion point | ADR-0017, 06 §1.3, 19 §8 |
+| D2 | Numeric claims | ✅ A number needs evidence, or its text must be in `client.approvedFacts`. Otherwise use qualitative wording. A self-reported label alone never permits a number | ADR-0005, CONTENT-05 |
+| D3 | First release and navigation | ✅ Release slices (below). The nav shows only sections with at least one published page. Home sections 4–7 are omitted while empty | 01 §2, 02 Home |
+| D4 | Japanese-path smoke test before kanji | ✅ The preview-only `/__smoke/日本語` route, removed once a real Japanese-path page exists | IA-04, 06 G17, 10 §2 |
+| D5 | Denylist hashing | ✅ scrypt with a committed public salt. The residual risk that names can be guessed is documented | CONTENT-03, ADR-0006 |
+| D6 | Press JSON-LD | ✅ The type follows `format`. `copyrightHolder` only with `copyrightHolderConfirmed`. Never `sdLicense` | 09 §3, 17 §2, 17 §5, 20 §1.1, LIC-10 |
+| D7 | Remaining PR #1 review threads | ✅ (a) G17 checks preview no-index and the disallow-all `robots.txt` · (b) App-assignee wording qualified · (c) startup barrier for PID registration · (d) "press requires media" already satisfied by the required `mediaMention`; no change | 06 G17 · ADR-0012, 19 §5, `docs/agents/issue-tracker.md`, `CONTEXT.md` · 19 §5 · — |
+| D8 | Who runs the pre-CI tickets | ✅ Pre-bootstrap and bootstrap work runs in attended sessions. PRs may come from Charles's identity and are merged with the admin bypass until required checks exist | ADR-0017, 06 §1.3, 19 §8, `CONTEXT.md` (Gate) |
+| D9 | Agent-made visual material | ✅ Agents write CSS chrome and geometric SVG. Pictorial artwork and the favicon come from Charles. Interim `<link rel="icon" href="data:,">` | 12 §7 |
+| D10 | Production deploy switch | ✅ `deploy-production.yml` runs only when `PRODUCTION_DEPLOY_ENABLED == 'true'`, which Charles sets at the first production release | 10 §3 |
+| D11 | Fixture-backed gate builds | ✅ Explicit non-production fixture content. `dist/` and browser gates build `GATE_CONTENT_SET` (fixtures → real, switched by Charles). G6 always builds real content. Production always builds real content and refuses fixture output | 06 §3, 10 §2, 10 §3, `CONTEXT.md` (Fixture content) |
+
+**Release slices (D3).** Every production release needs verified real content. Fixture content is never published (D11).
+
+| Release | Adds |
+|---|---|
+| v0.1 | Home, Hire, Experience, CV (+ `/cv.pdf`), Colophon, 404, `/site-index`, and every machine-readable surface for those pages (Markdown alternates, JSON-LD, `/data`, `/resume.json`, `llms.txt`, robots, sitemap, `humans.txt`, `security.txt`) |
+| v0.2 | Work and case studies, Writing, AI hub, About, feeds, site search |
+| v0.3 | Timeline |
+| v0.4 | Kanji |
+
 ## Open: blocks ticket decomposition 🔴
 
 **None.** Every decision that blocked ticket decomposition is resolved.

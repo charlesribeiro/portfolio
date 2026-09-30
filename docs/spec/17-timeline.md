@@ -15,7 +15,9 @@ type MediaMention = BaseEntry & {
   datePublished: ISODate;
   url: string;                         // canonical external URL
   archivedUrl: string;                 // REQUIRED web.archive.org (or archive.today) snapshot
-  format: 'article'|'video'|'radio'|'podcast'|'print';
+  format: 'article'|'video'|'radio'|'podcast'|'print';   // selects the JSON-LD press-node type (§5, D6)
+  copyrightHolderConfirmed?: true;     // Owner Confirmation that headline.rights.holder is the legal rights holder; only then is
+                                       //   `copyrightHolder` emitted in JSON-LD (D6). Absent = not emitted, never assumed to be the publisher
   author?: string;
   excerpt?: QuotedText;                // short quotation ≤ 300 chars (§4)
   image?: Media;                       // only own media ('LicenseRef-AllRightsReserved', copyrightHolder Charles), openly licensed media (SPDX, e.g. 'CC-BY-4.0'), or 'LicenseRef-UsedWithPermission' + permissionRef (§4)
@@ -60,7 +62,7 @@ type TimelineEntry = BaseEntry & {
 ## 5. Machine-readable representation
 
 - `/timeline` HTML: `<ol reversed>` of `<article class="h-entry">`, each with `<time datetime>`, `<h3>` title, `p-summary`, and `u-url` for the source.
-- JSON-LD: a `CollectionPage` whose `mainEntity` is an `ItemList` of entries. Each press entry is a `NewsArticle` (`headline` (a quotation, LIC-10), `inLanguage`, `datePublished`, `publisher` Organization, `copyrightHolder` = publisher, no `sdLicense` (LIC-10), `url`, `archivedAt`, `about` → `#person`), and the `Person` node has `subjectOf` pointing to them.
+- JSON-LD: a `CollectionPage` whose `mainEntity` is an `ItemList` of entries. Each press entry is a **press node** typed by `format` (D6): `article`/`print` → `NewsArticle`, `video` → `VideoObject`, `radio` → `RadioEpisode`, `podcast` → `PodcastEpisode`. Its properties are `headline` (a quotation, LIC-10), `inLanguage`, `datePublished`, `publisher` Organization, `url`, `archivedAt`, `about` → `#person`, with no `sdLicense` (LIC-10). It has `copyrightHolder` = `headline.rights.holder` **only** when `copyrightHolderConfirmed: true`; otherwise it is omitted, never assumed to be the publisher, and the `Person` node has `subjectOf` pointing to them.
 - `/timeline.md`: a chronological Markdown list with source links.
 - `/data/timeline.json`: the structured **facts** (date, title, category, publisher, URLs, related IDs), with a schema, under CC0 (20 §1.1). Each entry links to `/timeline#<id>` (or `/timeline/<slug>` for `longForm` entries) for the editorial context (CC BY-NC). Third-party headlines, their translations and excerpts inside it are quoted, not relicensed. They carry field-level `rights` and are listed in `licenseExclusions` (LIC-10).
 - `/feeds/timeline.xml`: Atom feed, with a per-entry `<rights>` naming the holder of any quotation (LIC-10).

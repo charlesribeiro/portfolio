@@ -20,6 +20,8 @@ The order of sections below is normative. Visual treatment is covered in 12.
 
 ## Home `/`
 
+Sections 4–7 are omitted while the domain layer has no published data for them, and are never filled with stand-ins (D3, ADR-0008). Sections 1–3 and 8 are always present.
+
 1. **Positioning block.** `<h1>` is "{profile.name} — Senior Frontend Engineer". One sentence adds AI engineering. One sentence gives proof points ({years}+ years, computed per CONTENT-10; Angular/TypeScript/RxJS/Nx/React; enterprise modernization; large-scale systems). No emoji greeting.
 2. **Quick facts box** (the portal-era "profile card"): role sought · years · core stack · location and timezone · remote/relocation · English level · work authorization [confirm] · availability · links (LinkedIn, GitHub, email). Marked up as `<dl>`, which is also the most agent-friendly block on the page.
 3. **Primary calls to action:** "Download CV" and "Contact" (direct links: email, LinkedIn; see 13).
