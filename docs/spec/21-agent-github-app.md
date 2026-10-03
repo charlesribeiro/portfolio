@@ -56,19 +56,26 @@ Result: the App can write only to `agent/**` branches (dependency bots keep thei
 ## 5. Authentication model
 
 ```
-bubbles-server worker
+agent-token helper (user `agents`)
   └─ reads App private key (PEM) ──▶ signs JWT (RS256, iat-60s, exp ≤ 10 min, iss = App ID)
         └─ POST /app/installations/{installation_id}/access_tokens
                body: { "repositories": ["portfolio"],
                        "permissions": { minimal set for this job } }   ◀── optional per-job down-scoping
         ◀─ installation access token (expires after 1 hour)
+  └─ hands the token to the requesting worker over a local socket
+bubbles-server worker (user `agent-worker`)
   └─ uses token for git (credential helper over HTTPS) and gh/API (GH_TOKEN in the process env only)
 ```
 
-- **Private key storage:** on bubbles-server only, in a secrets store or a file owned by a dedicated `agents` system user with mode `0400`. It is never in the repository, never in container images, never in environment files that are committed, and never readable by the worker's sandboxed tool processes except through a small token-minting helper.
-- **Token minting helper:** a tiny local service or CLI (`agent-token`) that holds the key and returns installation tokens. Workers never see the PEM. This limits the blast radius of a compromised worker to 1-hour tokens.
+- **Private key storage:** on bubbles-server only, in a secrets store or a file owned by the dedicated `agents` system user with mode `0400`, inside a directory that only `agents` can enter. It is never in the repository, never in container images, never in environment files that are committed, and never readable by worker processes except through the token-minting helper.
+- **Token minting helper:** a tiny local service (`agent-token`) running as `agents` that holds the key and returns installation tokens. Its socket accepts only the worker user. Workers never see the PEM. This limits the blast radius of a compromised worker to 1-hour tokens.
 - **Commit identity:** `<portfolio-agents>[bot] <{bot-user-id}+<portfolio-agents>[bot]@users.noreply.github.com>`. Commits carry `Co-Authored-By` trailers as configured. Signed commits are optional (a later hardening step).
-- **No personal credentials** (Charles's PAT, SSH key, `gh auth` session) may exist in the worker environment. The governance checklist verifies this.
+- **Host isolation (ADR-0012).** Charles's attended sessions may run on bubbles-server under his own account. The autonomous path is isolated from it, and these rules are mandatory:
+  - **Unix users.** The supervisor and its worker runs (19 §5) run as the dedicated user `agent-worker`, and the helper as `agents`, never as `charles`. Both are system users with no login shell and home directories outside `/home`, which `ProtectHome=yes` hides. Neither belongs to `sudo`, `docker` or any other privileged group, and `charles` belongs to neither user's group.
+  - **systemd hardening.** The supervisor and helper services set `ProtectHome=yes` and `NoNewPrivileges=yes`. Worker runs are spawned from the supervisor service and inherit its user, mount namespace and no-new-privileges flag, even when placed in their own transient scope (19 §5). Any other unit that starts a run must set the same options.
+  - **Human credentials stay out.** Charles's GitHub credentials (`gh` login, PATs, SSH keys, SSH agent) are never copied, mounted, forwarded, exported or otherwise passed to the worker path. That includes bind mounts or volumes from `/home/charles`, SSH agent forwarding, and inherited environment such as `GH_TOKEN`, `GITHUB_TOKEN`, `GH_CONFIG_DIR` or `SSH_AUTH_SOCK`. The supervisor builds each run's environment from scratch. Workers receive only this repository's App identity.
+  - **Agent credentials stay in.** The App key is readable only by `agents`. Installation tokens exist only in the helper and in the worker processes they were issued to. Charles's ordinary processes and unrelated services can read neither.
+  - **Residual risk.** Root on the host can read both identities. A compromise of `charles` counts as root, because `charles` is in `sudo` and `docker`. This risk is accepted. Damage from a stolen App identity is bounded by §3 and §4, and the response is the Incident row of §6. Damage from stolen human credentials is not bounded by this design.
 
 ## 6. Token lifecycle
 
@@ -83,4 +90,4 @@ bubbles-server worker
 
 ## 7. Human setup checklist (future `ready-for-human` ticket)
 
-☐ Create the private App with the §3 permissions · ☐ install it on this repo only · ☐ generate the key and store it on bubbles-server (§5) · ☐ configure the §4 rulesets (with `protect-main` initially without required checks) and CODEOWNERS · ☐ after the bootstrap PR merges, add `verify` and `gate-integrity` as required checks · ☐ confirm that no personal credentials are on the server · ☐ smoke test: an agent can push `agent/test`, open a PR, and is refused on merge, on pushes to `main` and on workflow edits · ☐ record the App ID and installation ID (not secret) in `docs/agents/github-app.md`.
+☐ Create the private App with the §3 permissions · ☐ install it on this repo only · ☐ generate the key and store it on bubbles-server (§5) · ☐ configure the §4 rulesets (with `protect-main` initially without required checks) and CODEOWNERS · ☐ after the bootstrap PR merges, add `verify` and `gate-integrity` as required checks · ☐ create the `agents` and `agent-worker` users per §5, and confirm that `id` shows neither in `sudo`, `docker` or any other privileged group · ☐ negative isolation test: `sudo -u agent-worker test -r /home/charles/.config/gh/hosts.yml` must fail, `sudo -u agent-worker test -r <App key>` must fail, and `test -r <App key>` run as `charles` must fail · ☐ smoke test: an agent can push `agent/test`, open a PR, and is refused on merge, on pushes to `main` and on workflow edits · ☐ record the App ID and installation ID (not secret) in `docs/agents/github-app.md`.
