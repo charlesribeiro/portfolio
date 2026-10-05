@@ -32,32 +32,36 @@ Verified on 2026-10-05 from the installation's details as returned by the GitHub
 
 ## Negative isolation test (21 §5, §7)
 
-Checked on 2026-10-05. The evidence is of three kinds, kept apart below. Only the first table records commands that were run and seen to fail.
+Checked on 2026-10-05. The evidence is of three kinds, kept apart below. Only the first table records commands that were run and seen to fail. The human operator's account is the one Charles uses for attended sessions.
 
 ### Directly executed
 
 | Check | Run as | Expected | Result |
 |---|---|---|---|
+| Read the human operator's GitHub credentials (`test -r`) | `agent-worker` | fails | Failed (exit 1) |
+| Read the human operator's GitHub credentials (`test -r`) | `agents` | fails | Failed (exit 1) |
 | Read the App key | `agent-worker` (the helper's read-only contract run) | fails | Failed |
 | Enter the App key directory | `agent-worker` (the helper's read-only contract run) | fails | Failed |
-| `test -r <App key>` | `charles` | fails | Failed |
-| Enter the App key directory | `charles` | fails | Failed |
-| `id agents` | `charles` | no privileged group | Only its own group, `agents` |
-| `id agent-worker` | `charles` | no privileged group | Only its own group, `agent-worker` |
+| `test -r <App key>` | the human operator's account | fails | Failed |
+| Enter the App key directory | the human operator's account | fails | Failed |
+| `id agents` | the human operator's account | no privileged group | Only its own group, `agents` |
+| `id agent-worker` | the human operator's account | no privileged group | Only its own group, `agent-worker` |
 
-### Filesystem and account evidence (not an executed read test)
+The two credential reads ran through `sudo -u`, and the host's sudo journal records both as the target user.
 
-The literal `sudo -u agent-worker test -r /home/charles/.config/gh/hosts.yml` was not run, and no equivalent was run as `agents`. That neither user can read Charles's GitHub credentials is inferred from:
+### Filesystem and account evidence
 
-- `/home/charles` is owned by `charles:charles` with mode `0700` and no ACL. `.config/gh` is `0700`, and `hosts.yml` is `0600`.
-- Group `charles` has no members besides `charles`.
-- `agents` and `agent-worker` have a `nologin` shell and a home outside `/home`.
-- `sudo` and `docker` have `charles` as their only member. Neither agent user is in `adm`, `disk`, `shadow`, `systemd-journal` or `root`.
+These explain why the reads above fail:
+
+- The human operator's home directory and GitHub credentials are readable only by that account: owner-only modes and no ACLs.
+- The human operator's personal group has no other members.
+- `agents` and `agent-worker` have a `nologin` shell and a home directory outside the human users' home area.
+- `sudo` and `docker` have the human operator as their only member. Neither agent user is in `adm`, `disk`, `shadow`, `systemd-journal` or `root`.
 - The App key directory is owned by `agents` with mode `0700`.
 
 ### systemd isolation evidence
 
-Every H-002 helper run (the token minting as `agents`, and the contract and smoke runs as `agent-worker`) ran as a transient unit with `ProtectHome=yes`, `NoNewPrivileges=yes` and `PrivateTmp=yes`, as the host's sudo journal records. `ProtectHome=yes` makes `/home` inaccessible to those processes whatever the file modes. The long-lived supervisor and `agent-token` services are outside H-002 (#4 non-goals), and their hardening is not covered here.
+Every H-002 helper run (the token minting as `agents`, and the contract and smoke runs as `agent-worker`) ran as a transient unit with `ProtectHome=yes`, `NoNewPrivileges=yes` and `PrivateTmp=yes`, as the host's sudo journal records. `ProtectHome=yes` hides all users' home directories from those processes, whatever the file modes. The long-lived supervisor and `agent-token` services are outside H-002 (#4 non-goals), and their hardening is not covered here.
 
 ## Smoke test (21 §7)
 
