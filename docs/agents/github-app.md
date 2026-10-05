@@ -6,17 +6,17 @@ The autonomous agents' only GitHub identity (ADR-0012, [spec 21](../spec/21-agen
 
 | Field | Value |
 |---|---|
-| App | `bubbles-portfolio-agents` (private, owned by `charlesribeiro`) |
+| App | `bubbles-portfolio-agents`, owned by `charlesribeiro`. Private: an unauthenticated `GET /apps/bubbles-portfolio-agents` returns 404 |
+| App ID | `5170277` |
+| Installation ID | `167383452` |
 | Bot account | `bubbles-portfolio-agents[bot]` (user ID `337172008`) |
 | Commit identity | `bubbles-portfolio-agents[bot] <337172008+bubbles-portfolio-agents[bot]@users.noreply.github.com>` |
-| App ID | `TODO(Charles)` |
-| Installation ID | `TODO(Charles)` |
-| Installation scope | `charlesribeiro/portfolio` only ("Only select repositories") |
-| Webhooks, user authorization, callback/setup URLs | Off (21 §2) |
+| Installation scope | `charlesribeiro/portfolio` only, on account `charlesribeiro`: `repository_selection` is `selected`, and `GET /installation/repositories` with an installation token lists only this repository (2026-10-05) |
+| Webhooks, user authorization, callback/setup URLs | Off (21 §2): webhook inactive, no callback URL, no setup URL, OAuth user authorization not configured. Checked by Charles on the App settings page, 2026-10-05 |
 
 ## Permissions
 
-Exactly the 21 §3 set. Every other repository, organization and account permission is None, including Workflows, Administration, Secrets, Variables, Environments, Pages and Deployments.
+The App must have exactly the 21 §3 set. Every other repository, organization and account permission is None, including Workflows, Administration, Secrets, Variables, Environments, Pages and Deployments.
 
 | Permission | Level |
 |---|---|
@@ -28,19 +28,36 @@ Exactly the 21 §3 set. Every other repository, organization and account permiss
 | Commit statuses | Read |
 | Actions | Read |
 
-Confirmed against the App settings on `TODO(Charles): date`.
+Verified on 2026-10-05 from the installation's details as returned by the GitHub API (`GET /app/installations/{installation_id}`, read with the App's own credentials). The installation has exactly these seven permissions at these levels, and nothing else, so it has no `workflows` and no `administration`. It also reports `repository_selection: selected`, a single repository, `charlesribeiro/portfolio`, no suspension (`suspended_at: null`) and no webhook event subscriptions. The smoke test agrees: GitHub issued a token with Contents: write, Pull requests: write and Metadata: read, and refused the workflow push for lack of the `workflows` permission.
 
 ## Negative isolation test (21 §5, §7)
 
-Run on `TODO(Charles): date`. Each read must fail.
+Checked on 2026-10-05. The evidence is of three kinds, kept apart below. Only the first table records commands that were run and seen to fail.
 
-| Check | Expected | Result |
-|---|---|---|
-| `sudo -u agent-worker test -r /home/charles/.config/gh/hosts.yml` | fails | `TODO(Charles)` |
-| `sudo -u agent-worker test -r <App key>` | fails | `TODO(Charles)` |
-| `test -r <App key>` as `charles` | fails | `TODO(Charles)` |
-| `id agents` | no privileged group | `TODO(Charles)` |
-| `id agent-worker` | no privileged group | `TODO(Charles)` |
+### Directly executed
+
+| Check | Run as | Expected | Result |
+|---|---|---|---|
+| Read the App key | `agent-worker` (the helper's read-only contract run) | fails | Failed |
+| Enter the App key directory | `agent-worker` (the helper's read-only contract run) | fails | Failed |
+| `test -r <App key>` | `charles` | fails | Failed |
+| Enter the App key directory | `charles` | fails | Failed |
+| `id agents` | `charles` | no privileged group | Only its own group, `agents` |
+| `id agent-worker` | `charles` | no privileged group | Only its own group, `agent-worker` |
+
+### Filesystem and account evidence (not an executed read test)
+
+The literal `sudo -u agent-worker test -r /home/charles/.config/gh/hosts.yml` was not run, and no equivalent was run as `agents`. That neither user can read Charles's GitHub credentials is inferred from:
+
+- `/home/charles` is owned by `charles:charles` with mode `0700` and no ACL. `.config/gh` is `0700`, and `hosts.yml` is `0600`.
+- Group `charles` has no members besides `charles`.
+- `agents` and `agent-worker` have a `nologin` shell and a home outside `/home`.
+- `sudo` and `docker` have `charles` as their only member. Neither agent user is in `adm`, `disk`, `shadow`, `systemd-journal` or `root`.
+- The App key directory is owned by `agents` with mode `0700`.
+
+### systemd isolation evidence
+
+Every H-002 helper run (the token minting as `agents`, and the contract and smoke runs as `agent-worker`) ran as a transient unit with `ProtectHome=yes`, `NoNewPrivileges=yes` and `PrivateTmp=yes`, as the host's sudo journal records. `ProtectHome=yes` makes `/home` inaccessible to those processes whatever the file modes. The long-lived supervisor and `agent-token` services are outside H-002 (#4 non-goals), and their hardening is not covered here.
 
 ## Smoke test (21 §7)
 
