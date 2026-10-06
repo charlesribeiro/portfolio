@@ -38,6 +38,7 @@ This is the specification for Charles's professional engineering portfolio. The 
 | 19 | [Agent-driven development](19-agent-development.md) | How coding agents work on this repo safely |
 | 20 | [Licensing](20-licensing.md) | Licence per material, repository boundaries, licence signals |
 | 21 | [Agent GitHub App](21-agent-github-app.md) | Agent identity, permissions, rulesets, token lifecycle |
+| 22 | [Agent run isolation](22-agent-run-isolation.md) | Untrusted worker runs: per-run identity, private state, network isolation, trusted brokers, capabilities, adversarial tests |
 | 90 | [Decisions register](90-open-decisions.md) | Resolved, defaulted, deferred and open decisions |
 
 ## Conventions
