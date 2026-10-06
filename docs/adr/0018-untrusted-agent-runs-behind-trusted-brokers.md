@@ -11,7 +11,7 @@ An autonomous worker run executes text that outsiders can influence (issue, PR a
 - the **model proxy** holds the provider key and serves the run through a per-run capability with limits;
 - the **package proxy** serves read-only package retrieval from a fixed upstream.
 
-These boundaries are enforced by Unix users, systemd units and kernel namespaces, not by prompts or tool settings. The requirements (AGENT-02, AGENT-05 to AGENT-08, AGENT-10 to AGENT-14) are in `docs/spec/22-agent-run-isolation.md`. AGENT-01 and AGENT-04 are in spec 21, and AGENT-03 and AGENT-09 in spec 19 §5. This ADR adds no GitHub App permission (ADR-0012). The rules incorporate isolation and crash-consistency findings from the security review of the bubbles-agent implementation design.
+These boundaries are enforced by Unix users, systemd units and kernel namespaces, not by prompts or tool settings. A run sees an empty root with only explicit read-only binds and its three endpoint sockets. On a host that can't enforce this (systemd older than 257, or missing kernel features), the supervisor refuses to run. The requirements (AGENT-02, AGENT-05 to AGENT-08, AGENT-10 to AGENT-14, AGENT-16 and AGENT-17) are in `docs/spec/22-agent-run-isolation.md`. AGENT-01, AGENT-04 and AGENT-15 are in spec 21, and AGENT-03 and AGENT-09 in spec 19 §5. This ADR adds no GitHub App permission (ADR-0012). The rules incorporate isolation and crash-consistency findings from the security review of the bubbles-agent implementation design.
 
 ## Considered Options
 
