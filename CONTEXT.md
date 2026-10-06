@@ -170,11 +170,29 @@ _Avoid_: external assets, vendor files
 ### Collaboration
 
 **Agent**:
-An autonomous coding worker on bubbles-server. It implements issues and opens pull requests through the Agent App, and never merges.
+An autonomous coding worker on bubbles-server. It implements issues and opens pull requests through the Agent App, and never merges. It consists of the trusted Supervisor and untrusted Worker runs.
 _Avoid_: bot (except for the GitHub account name), assistant
 
 **Agent App**:
-The single GitHub App identity that all Agents act through. It is scoped to this repository and has no merge, admin or bypass rights.
+The single GitHub App identity that all Agents act through. It is scoped to this repository and has no merge, admin or bypass rights. Only the token helper and the Publication broker hold its credentials; Worker runs never do.
+
+**Supervisor**:
+The trusted bubbles-server process that mints worker runs, keeps the run registry, and owns every issue-claim decision and recovery. The Publication broker is part of it.
+
+**Worker run**:
+One execution of the coding agent for one issue claim, under its own per-run identity. It is untrusted: it holds no GitHub or model-provider credential, has no direct network access and is isolated from every other Worker run (spec 22).
+_Avoid_: worker process (ambiguous with the Supervisor), job
+
+**Publication broker**:
+The trusted part of the Supervisor that performs every GitHub write and issue-claim marker for a Worker run, on the run's authenticated request, and supplies its git data as bundles.
+
+**Model proxy**:
+The trusted service that holds the model-provider key and serves a Worker run's model requests through a per-run, revocable capability.
+_Avoid_: LLM proxy (the implementation design's name)
+
+**Package proxy**:
+The trusted, read-only service that is a Worker run's only path to public packages.
+_Avoid_: registry proxy (the implementation design's name)
 _Avoid_: service account, machine user
 
 **Merge authority**:
